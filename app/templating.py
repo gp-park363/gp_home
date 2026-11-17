@@ -18,3 +18,25 @@ def client_ip(request: Request) -> str:
     return request.headers.get("CF-Connecting-IP") or (
         request.client.host if request.client else ""
     )
+
+
+def kst(value, fmt: str = "%Y-%m-%d %H:%M") -> str:
+    """UTC 시각을 한국 시간 문자열로 (템플릿 필터 `| kst`)."""
+    from zoneinfo import ZoneInfo
+
+    return value.astimezone(ZoneInfo("Asia/Seoul")).strftime(fmt) if value else ""
+
+
+templates.env.filters["kst"] = kst
+
+
+def qs(request: Request, **updates) -> str:
+    """현재 쿼리 문자열에 값을 바꿔 넣은 "?a=1&b=2" (빈 값은 뺍니다). 페이지 이동 링크용."""
+    from urllib.parse import urlencode
+
+    params = dict(request.query_params) | {k: str(v) for k, v in updates.items()}
+    clean = {k: v for k, v in params.items() if v not in ("", "None")}
+    return "?" + urlencode(clean) if clean else "?"
+
+
+templates.env.globals["qs"] = qs

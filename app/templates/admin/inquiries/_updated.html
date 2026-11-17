@@ -1,0 +1,6 @@
+{# 변경 후 응답: #timeline 본문 + 상태 배지·처리 카드·오류 칸 OOB 갱신 #}
+{% from "admin/_macros.html" import status_badge %}
+{% include "admin/inquiries/_timeline.html" %}
+<span id="inq-status-badge" hx-swap-oob="true">{{ status_badge(inq.status, inq.status_label) }}</span>
+{% with oob = True %}{% include "admin/inquiries/_controls.html" %}{% endwith %}
+<p id="composer-error" class="hidden" hx-swap-oob="true"></p>

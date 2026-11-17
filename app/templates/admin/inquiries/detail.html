@@ -1,0 +1,119 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import status_badge, card %}
+{% block content %}
+<a href="/admin/inquiries/" class="text-sm text-gray-500 hover:text-ink">← 견적 목록</a>
+
+<div class="mt-2 flex flex-wrap items-center gap-2">
+  <span class="font-mono text-sm text-gray-500">{{ inq.number }}</span>
+  <span id="inq-status-badge">{{ status_badge(inq.status, inq.status_label) }}</span>
+</div>
+<h1 class="mt-1 text-xl font-bold break-words text-ink">{{ inq.title }}</h1>
+<p class="mt-1 text-sm text-gray-500">{{ inq.company }} · {{ inq.name }} · {{ inq.created_at | kst }} 접수</p>
+
+<div class="mt-5 grid items-start gap-5 lg:grid-cols-[1fr_20rem]">
+  <div class="min-w-0 space-y-5">
+    {% call card("요청 내용") %}
+      <dl class="mb-4 grid grid-cols-[5rem_1fr] gap-y-1.5 text-sm">
+        <dt class="text-gray-500">제작 수량</dt><dd>{{ inq.quantity or "-" }}</dd>
+        <dt class="text-gray-500">최대 예산</dt><dd>{{ inq.budget or "-" }}</dd>
+        {% if inq.portfolio_item %}
+          <dt class="text-gray-500">참고 사례</dt>
+          <dd><a href="/portfolio/{{ inq.portfolio_item.id }}" target="_blank" class="text-brand hover:underline">{{ inq.portfolio_item.name }}{% if inq.portfolio_item.code %} ({{ inq.portfolio_item.code }}){% endif %} ↗</a></dd>
+        {% endif %}
+      </dl>
+      <div class="rounded bg-gray-50 p-4 text-sm leading-relaxed whitespace-pre-wrap break-words">{{ inq.content or "(내용 없음)" }}</div>
+      {% if inq.files %}
+        <h3 class="mt-4 text-sm font-semibold text-gray-600">첨부 {{ inq.files | length }}개</h3>
+        <ul class="mt-2 space-y-1 text-sm">
+          {% for f in inq.files %}
+            <li><a href="/admin/inquiries/{{ inq.id }}/files/{{ f.id }}" class="text-brand hover:underline">📎 {{ f.original_name }}</a> <span class="text-gray-400">{{ (f.size / 1024) | round(0) | int }}KB</span></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endcall %}
+
+    {% call card("제작 사양") %}
+      {% set rows = inq.spec.rows if inq.spec else [] %}
+      {% if rows or inq.mold %}
+        <dl class="grid grid-cols-[5.5rem_1fr] gap-y-1.5 text-sm">
+          {% for label, value in rows %}<dt class="text-gray-500">{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}
+          {% if inq.mold %}
+            <dt class="text-gray-500">보유 목형</dt>
+            <dd><a href="/admin/molds/?q={{ inq.mold.code or '' }}" class="text-brand hover:underline">{{ inq.mold.code or ("#" ~ inq.mold.id) }}</a> · {{ inq.mold.box_type_label }} {{ inq.mold.size_label }} mm</dd>
+          {% endif %}
+        </dl>
+      {% else %}
+        <p class="text-sm text-gray-500">입력한 사양이 없습니다.</p>
+      {% endif %}
+    {% endcall %}
+
+    <section class="rounded-lg border border-gray-200 bg-white p-5">
+      <h2 class="mb-3 font-bold text-ink">처리 이력</h2>
+      <div id="timeline">{% include "admin/inquiries/_timeline.html" %}</div>
+    </section>
+
+    {# 답변(고객에게 메일 발송) / 내부 메모 작성 #}
+    <section class="rounded-lg border border-gray-200 bg-white p-5"
+             x-data="{ kind: 'reply', files: [] }"
+             @composer-reset.window="$refs.form.reset(); files = []">
+      <div class="mb-3 flex gap-1 text-sm" role="tablist">
+        <button type="button" role="tab" :aria-selected="(kind === 'reply').toString()" @click="kind = 'reply'"
+                :class="kind === 'reply' ? 'bg-brand text-white' : 'bg-gray-100 text-gray-600'" class="rounded px-3 py-1.5 font-semibold">고객 답변</button>
+        <button type="button" role="tab" :aria-selected="(kind === 'memo').toString()" @click="kind = 'memo'"
+                :class="kind === 'memo' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'" class="rounded px-3 py-1.5 font-semibold">내부 메모</button>
+      </div>
+      <form x-ref="form" hx-post="/admin/inquiries/{{ inq.id }}/replies" hx-target="#timeline" hx-encoding="multipart/form-data"
+            :hx-confirm='kind === "reply" ? {{ (inq.email ~ "(으)로 답변 메일을 보냅니다. 계속할까요?") | tojson }} : null'
+            hx-disabled-elt="find button[type=submit]">
+        <input type="hidden" name="kind" :value="kind">
+        <label for="reply-body" class="sr-only">내용</label>
+        <textarea id="reply-body" name="body" rows="8" required class="input"
+                  :placeholder="kind === 'reply' ? '고객에게 보낼 답변 (메일로 발송됩니다)' : '직원끼리만 보는 메모 (고객에게 보이지 않습니다)'"></textarea>
+        <p id="composer-error" class="hidden"></p>
+        <div class="mt-3 flex flex-wrap items-center gap-3">
+          <label x-show="kind === 'reply'" class="cursor-pointer rounded border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-600 hover:border-brand">
+            📎 견적서 등 첨부 (최대 {{ reply_max_files }}개, 합계 20MB)
+            <input type="file" name="files" multiple accept="{{ allowed_ext }}" class="sr-only"
+                   @change="files = [...$event.target.files].map(f => f.name)">
+          </label>
+          <span x-show="kind === 'reply' && files.length" class="text-sm text-gray-600" x-text="files.join(', ')"></span>
+          <button type="submit" class="btn-primary ml-auto py-2.5"
+                  :class="kind === 'memo' && '!bg-amber-500 hover:!bg-amber-600'"
+                  x-text="kind === 'reply' ? '답변 메일 보내기' : '메모 저장'">답변 메일 보내기</button>
+        </div>
+        <p x-show="kind === 'reply'" class="mt-2 text-xs text-gray-500">보내면 상태가 '답변완료'로 바뀌고, 담당이 없으면 내가 담당이 됩니다.</p>
+      </form>
+    </section>
+  </div>
+
+  <aside class="space-y-5 lg:sticky lg:top-4">
+    {% include "admin/inquiries/_controls.html" %}
+
+    {% call card("고객 정보") %}
+      <dl class="grid grid-cols-[4.5rem_1fr] gap-y-1.5 text-sm break-all">
+        <dt class="text-gray-500">업체명</dt><dd>{{ inq.company }}</dd>
+        <dt class="text-gray-500">담당자</dt><dd>{{ inq.name }}{% if inq.position %} <span class="text-gray-500">({{ inq.position }})</span>{% endif %}</dd>
+        <dt class="text-gray-500">연락처</dt><dd><a href="tel:{{ inq.phone }}" class="text-brand hover:underline">{{ inq.phone }}</a></dd>
+        <dt class="text-gray-500">이메일</dt><dd><a href="mailto:{{ inq.email }}" class="text-brand hover:underline">{{ inq.email }}</a></dd>
+        <dt class="text-gray-500">납품 위치</dt><dd>{{ inq.delivery_location or "-" }}</dd>
+      </dl>
+    {% endcall %}
+
+    {% call card("접수 정보") %}
+      <dl class="grid grid-cols-[4.5rem_1fr] gap-y-1.5 text-xs text-gray-600 break-all">
+        <dt class="text-gray-500">접수</dt><dd>{{ inq.created_at | kst }}</dd>
+        {% if inq.answered_at %}<dt class="text-gray-500">최근 답변</dt><dd>{{ inq.answered_at | kst }}</dd>{% endif %}
+        {% if inq.privacy_agreed_at %}<dt class="text-gray-500">개인정보</dt><dd>{{ inq.privacy_agreed_at | kst }} 동의</dd>{% endif %}
+        {% if inq.ip %}<dt class="text-gray-500">IP</dt><dd>{{ inq.ip }}</dd>{% endif %}
+        {% if inq.user_agent %}<dt class="text-gray-500">브라우저</dt><dd>{{ inq.user_agent }}</dd>{% endif %}
+      </dl>
+    {% endcall %}
+
+    {% if user.is_admin %}
+      <form hx-post="/admin/inquiries/{{ inq.id }}/delete" hx-confirm="견적 {{ inq.number }}와 첨부 파일을 모두 지웁니다. 되돌릴 수 없습니다. 계속할까요?">
+        <button class="w-full rounded border border-red-200 bg-white px-3 py-2 text-sm text-red-600 hover:bg-red-50">견적 삭제 (스팸·중복)</button>
+      </form>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,4 @@
+{# 단계·제출 검증 결과: 각 오류 칸을 OOB로 교체 (오류가 없는 칸은 비움) #}
+{% from "inquiry/_macros.html" import err %}
+{% for n in names %}{{ err(n, errors.get(n, ""), oob=True) }}
+{% endfor %}

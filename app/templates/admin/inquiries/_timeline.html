@@ -1,0 +1,36 @@
+{% if mail_failed %}
+  <p class="mb-3 rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">답변은 저장했지만 메일 발송에 실패했습니다. 아래 '다시 보내기'를 눌러 주세요.</p>
+{% endif %}
+<ol class="space-y-3">
+  {% for r in inq.replies %}
+    {% if r.kind == "event" %}
+      <li class="flex gap-2 text-xs text-gray-500">
+        <span>•</span><span>{{ r.body }} — {{ r.author_name }}, {{ r.created_at | kst("%m.%d %H:%M") }}</span>
+      </li>
+    {% else %}
+      <li class="rounded-lg border p-4 {{ 'border-emerald-200 bg-emerald-50/40' if r.kind == 'reply' else 'border-amber-200 bg-amber-50' }}">
+        <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+          <span class="font-semibold {{ 'text-emerald-800' if r.kind == 'reply' else 'text-amber-800' }}">{{ r.kind_label }}</span>
+          <span class="text-gray-600">{{ r.author_name }} · {{ r.created_at | kst }}</span>
+          {% if r.kind == "reply" %}
+            {% if r.emailed_at %}
+              <span class="text-emerald-700">✓ 메일 발송 {{ r.emailed_at | kst("%m.%d %H:%M") }}</span>
+            {% else %}
+              <span class="text-red-600">메일 미발송</span>
+              <button type="button" class="rounded bg-white px-2 py-0.5 text-red-700 ring-1 ring-red-200 hover:bg-red-50"
+                      hx-post="/admin/inquiries/{{ inq.id }}/replies/{{ r.id }}/resend" hx-target="#timeline">다시 보내기</button>
+            {% endif %}
+          {% endif %}
+        </div>
+        <div class="mt-2 text-sm leading-relaxed whitespace-pre-wrap break-words">{{ r.body }}</div>
+        {% if r.files %}
+          <ul class="mt-2 space-y-0.5 text-sm">
+            {% for f in r.files %}<li><a href="/admin/inquiries/{{ inq.id }}/reply-files/{{ f.id }}" class="text-brand hover:underline">📎 {{ f.original_name }}</a></li>{% endfor %}
+          </ul>
+        {% endif %}
+      </li>
+    {% endif %}
+  {% else %}
+    <li class="text-sm text-gray-500">아직 처리 기록이 없습니다.</li>
+  {% endfor %}
+</ol>

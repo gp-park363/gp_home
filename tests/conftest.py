@@ -78,3 +78,79 @@ def make_portfolio(db):
         return item
 
     return _make
+
+
+@pytest.fixture(autouse=True)
+def _media_tmp(tmp_path, monkeypatch):
+    """업로드 파일은 테스트마다 임시 폴더에 저장합니다."""
+    from app.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "media_root", tmp_path / "media")
+    return tmp_path / "media"
+
+
+@pytest.fixture(autouse=True)
+def outbox(db, monkeypatch) -> list:
+    """SMTP 대신 보낸 메일을 모읍니다. 알림은 새 세션으로 조회하므로 테스트 세션을 쓰게 바꿉니다."""
+    from contextlib import nullcontext
+
+    from app.services import inquiry as inquiry_service
+    from app.services import mailer
+
+    sent: list = []
+    monkeypatch.setattr(mailer, "deliver", lambda msg: sent.append(msg) or True)
+    monkeypatch.setattr(inquiry_service, "_session", lambda: nullcontext(db))
+    return sent
+
+
+@pytest.fixture
+def make_mold(db):
+    from app.models import Mold
+
+    def _make(box_type="lid", width=120, depth=80, height=40, **kw):
+        mold = Mold(box_type=box_type, width=width, depth=depth, height=height, **kw)
+        db.add(mold)
+        db.flush()
+        return mold
+
+    return _make
+
+
+@pytest.fixture
+def make_user(db):
+    from app.models import User
+    from app.services import auth
+
+    def _make(
+        email="sales@goodpackage.test", name="김영업", role="sales", password="test-pass-123", **kw
+    ):
+        user = User(
+            email=email, name=name, role=role, password_hash=auth.hash_password(password), **kw
+        )
+        db.add(user)
+        db.flush()
+        return user
+
+    return _make
+
+
+def login(client, email, password="test-pass-123"):
+    return client.post(
+        "/admin/login", data={"email": email, "password": password}, follow_redirects=False
+    )
+
+
+@pytest.fixture
+def staff(client, make_user):
+    """영업 계정으로 로그인한 클라이언트."""
+    user = make_user()
+    assert login(client, user.email).status_code == 303
+    return user
+
+
+@pytest.fixture
+def admin(client, make_user):
+    """관리자 계정으로 로그인한 클라이언트."""
+    user = make_user(email="admin@goodpackage.test", name="이관리", role="admin")
+    assert login(client, user.email).status_code == 303
+    return user

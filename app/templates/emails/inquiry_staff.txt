@@ -1,0 +1,30 @@
+새 견적문의가 접수되었습니다. (이 메일에 회신하면 고객에게 바로 답장됩니다)
+
+접수번호  {{ inq.number }}
+접수일시  {{ received_at.strftime("%Y-%m-%d %H:%M") }}
+관리자    {{ settings.site_url }}/admin/inquiries/{{ inq.id }}
+
+[담당자 정보]
+업체명    {{ inq.company }}
+담당자    {{ inq.name }}{% if inq.position %} ({{ inq.position }}){% endif %}
+연락처    {{ inq.phone }}
+이메일    {{ inq.email }}
+납품 위치 {{ inq.delivery_location }}
+
+[요청]
+제목      {{ inq.title }}
+수량      {{ inq.quantity or "-" }}
+예산      {{ inq.budget or "-" }}
+{% if inq.portfolio_item %}참고 사례 {{ inq.portfolio_item.name }}{% if inq.portfolio_item.code %} ({{ inq.portfolio_item.code }}){% endif %}
+{% endif %}
+{{ inq.content or "(내용 없음)" }}
+
+[제작 사양]
+{% for label, value in (inq.spec.rows if inq.spec else []) %}{{ label }}: {{ value }}
+{% else %}(입력 없음)
+{% endfor %}{% if inq.mold %}보유 목형: {{ inq.mold.code or ("#" ~ inq.mold.id) }} · {{ inq.mold.box_type_label }} {{ inq.mold.size_label }} mm
+{% endif %}
+[첨부 {{ inq.files | length }}개]
+{% for f in inq.files %}- {{ f.original_name }} ({{ (f.size / 1024) | round(0) | int }}KB)
+{% else %}(없음)
+{% endfor %}

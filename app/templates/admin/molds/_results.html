@@ -1,0 +1,20 @@
+{% from "admin/_macros.html" import pagination %}
+<div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+  <table class="w-full min-w-[44rem] text-sm">
+    <thead class="bg-gray-50 text-left text-xs text-gray-500">
+      <tr>
+        <th class="px-3 py-2 font-semibold">목형번호</th>
+        <th class="px-3 py-2 font-semibold">박스형태</th>
+        <th class="px-3 py-2 font-semibold">가로×세로×높이 (mm)</th>
+        <th class="px-3 py-2 font-semibold">메모</th>
+        <th class="px-3 py-2 font-semibold">사용</th>
+        <th class="px-3 py-2"><span class="sr-only">작업</span></th>
+      </tr>
+    </thead>
+    <tbody id="mold-rows" class="divide-y divide-gray-100">
+      {% for m in rows %}{% include "admin/molds/_row.html" %}{% endfor %}
+    </tbody>
+  </table>
+  {% if not rows %}<p class="px-4 py-10 text-center text-gray-500">조건에 맞는 목형이 없습니다.</p>{% endif %}
+</div>
+{{ pagination(request, page, "#results") }}

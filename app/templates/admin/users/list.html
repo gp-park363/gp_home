@@ -1,0 +1,76 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import field_error %}
+{% block content %}
+<h1 class="text-xl font-bold text-ink">계정 관리</h1>
+<p class="mt-1 text-sm text-gray-500">영업: 견적 처리·목형 관리 / 관리자: 그 밖에 쇼룸 편집, 계정 관리, 견적 삭제</p>
+
+{% if issued %}
+  <div class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm" role="status">
+    <p class="font-semibold text-emerald-900">{{ issued.email }} 임시 비밀번호</p>
+    <p class="mt-1 font-mono text-lg tracking-wider select-all">{{ issued.password }}</p>
+    <p class="mt-1 text-emerald-800">이 화면을 벗어나면 다시 볼 수 없습니다. 본인에게 전달하고, 처음 로그인한 뒤 '비밀번호'에서 바꾸도록 안내해 주세요.</p>
+  </div>
+{% endif %}
+{% if notice %}<p class="mt-4 rounded bg-amber-50 px-3 py-2 text-sm text-amber-800" role="alert">{{ notice }}</p>{% endif %}
+
+<div class="mt-4 overflow-x-auto rounded-lg border border-gray-200 bg-white">
+  <table class="w-full min-w-[46rem] text-sm">
+    <thead class="bg-gray-50 text-left text-xs text-gray-500">
+      <tr>
+        <th class="px-3 py-2 font-semibold">이메일</th>
+        <th class="px-3 py-2 font-semibold">이름</th>
+        <th class="px-3 py-2 font-semibold">권한</th>
+        <th class="px-3 py-2 font-semibold">사용</th>
+        <th class="px-3 py-2 font-semibold">최근 로그인</th>
+        <th class="px-3 py-2"><span class="sr-only">작업</span></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for u in users %}
+        <tr class="{{ 'text-gray-400' if not u.is_active }}">
+          <td class="px-3 py-2">{{ u.email }}{% if u.id == user.id %} <span class="text-xs text-brand">(나)</span>{% endif %}</td>
+          <td class="px-3 py-2"><input form="u-{{ u.id }}" name="name" value="{{ u.name }}" maxlength="50" required aria-label="이름" class="input px-2 py-1.5"></td>
+          <td class="px-3 py-2">
+            <select form="u-{{ u.id }}" name="role" aria-label="권한" class="input px-2 py-1.5">
+              {% for k, label in roles.items() %}<option value="{{ k }}" {{ 'selected' if u.role == k }}>{{ label }}</option>{% endfor %}
+            </select>
+          </td>
+          <td class="px-3 py-2"><label class="flex items-center gap-1"><input form="u-{{ u.id }}" type="checkbox" name="is_active" value="y" {{ 'checked' if u.is_active }}> 사용</label></td>
+          <td class="px-3 py-2 text-xs text-gray-500">{{ u.last_login_at | kst("%Y-%m-%d %H:%M") if u.last_login_at else "-" }}</td>
+          <td class="px-3 py-2 text-right whitespace-nowrap">
+            <form id="u-{{ u.id }}" method="post" action="/admin/users/{{ u.id }}" class="inline"><button class="text-brand hover:underline">저장</button></form>
+            <form method="post" action="/admin/users/{{ u.id }}/reset" class="ml-2 inline"
+                  onsubmit='return confirm({{ (u.name ~ "님의 비밀번호를 새 임시 비밀번호로 바꿉니다. 로그인 중이면 끊깁니다. 계속할까요?") | tojson }})'>
+              <button class="text-gray-600 hover:underline">비밀번호 초기화</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<section class="mt-6 max-w-3xl rounded-lg border border-gray-200 bg-white p-5">
+  <h2 class="font-bold text-ink">계정 추가</h2>
+  <form method="post" action="/admin/users/" class="mt-3 grid gap-3 sm:grid-cols-[1fr_9rem_8rem_auto] sm:items-start">
+    <div>
+      <label for="n-email" class="text-xs font-semibold text-gray-500">이메일 (로그인 ID)</label>
+      <input id="n-email" name="email" type="email" value="{{ v.get('email', '') }}" required class="input mt-1 py-2">
+      {{ field_error(errors.get("email")) }}
+    </div>
+    <div>
+      <label for="n-name" class="text-xs font-semibold text-gray-500">이름</label>
+      <input id="n-name" name="name" value="{{ v.get('name', '') }}" required maxlength="50" class="input mt-1 py-2">
+      {{ field_error(errors.get("name")) }}
+    </div>
+    <div>
+      <label for="n-role" class="text-xs font-semibold text-gray-500">권한</label>
+      <select id="n-role" name="role" class="input mt-1 py-2">
+        {% for k, label in roles.items() %}<option value="{{ k }}" {{ 'selected' if v.get('role') == k }}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="btn-primary py-2 sm:mt-5">추가</button>
+  </form>
+  <p class="mt-2 text-xs text-gray-500">추가하면 임시 비밀번호가 한 번 표시됩니다.</p>
+</section>
+{% endblock %}

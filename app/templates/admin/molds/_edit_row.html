@@ -1,0 +1,23 @@
+{% set v = v or {"code": m.code or "", "box_type": m.box_type, "width": m.width, "depth": m.depth, "height": m.height, "memo": m.memo, "active": "y" if m.is_active else ""} %}
+<tr id="mold-{{ m.id }}" class="bg-amber-50/60">
+  <td class="px-2 py-2"><input name="code" value="{{ v.code }}" maxlength="30" aria-label="목형번호" class="input px-2 py-1.5"></td>
+  <td class="px-2 py-2">
+    <select name="box_type" aria-label="박스형태" class="input px-2 py-1.5">
+      {% for k, label in box_types.items() %}<option value="{{ k }}" {{ 'selected' if v.box_type == k }}>{{ label }}</option>{% endfor %}
+    </select>
+  </td>
+  <td class="px-2 py-2">
+    <div class="flex items-center gap-1">
+      <input name="width" value="{{ v.width }}" inputmode="numeric" aria-label="가로" class="input w-16 px-2 py-1.5">×
+      <input name="depth" value="{{ v.depth }}" inputmode="numeric" aria-label="세로" class="input w-16 px-2 py-1.5">×
+      <input name="height" value="{{ v.height }}" inputmode="numeric" aria-label="높이" class="input w-16 px-2 py-1.5">
+    </div>
+    {% if error %}<p class="mt-1 text-xs text-red-600" role="alert">{{ error }}</p>{% endif %}
+  </td>
+  <td class="px-2 py-2"><input name="memo" value="{{ v.memo }}" aria-label="메모" class="input px-2 py-1.5"></td>
+  <td class="px-2 py-2"><label class="flex items-center gap-1 whitespace-nowrap"><input type="checkbox" name="active" value="y" {{ 'checked' if v.active == 'y' }}> 사용</label></td>
+  <td class="px-2 py-2 text-right whitespace-nowrap">
+    <button type="button" class="btn-primary px-3 py-1.5 text-sm" hx-post="/admin/molds/{{ m.id }}" hx-include="closest tr" hx-target="closest tr" hx-swap="outerHTML">저장</button>
+    <button type="button" class="ml-1 text-gray-500 hover:underline" hx-get="/admin/molds/{{ m.id }}/row" hx-target="closest tr" hx-swap="outerHTML">취소</button>
+  </td>
+</tr>

@@ -1,12 +1,15 @@
 """공개 정적 페이지와 헬스 체크."""
 
+from datetime import UTC, datetime, timedelta
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy import select, text
 
 from app import content
 from app.db import DbSession
-from app.models import PortfolioItem
+from app.models import Inquiry, PortfolioItem
+from app.services.inquiry import KST
 from app.templating import templates
 
 router = APIRouter()
@@ -74,12 +77,24 @@ def facilities(request: Request):
 
 
 @router.get("/partials/recent-inquiries", response_class=HTMLResponse)
-def recent_inquiries(request: Request):
-    """메인 '실시간 문의' 위젯 (60초마다 갱신).
-
-    TODO(견적 기능 단계): inquiries 테이블에서 최근 3건(제목, 접수일)을 조회합니다.
-    """
-    return render(request, "partials/recent_inquiries.html", items=[])
+def recent_inquiries(request: Request, db: DbSession):
+    """메인 '실시간 문의' 위젯 (60초마다 갱신). 공개 정보는 제목과 접수일뿐입니다."""
+    rows = db.execute(
+        select(Inquiry.id, Inquiry.title, Inquiry.created_at)
+        .order_by(Inquiry.created_at.desc(), Inquiry.id.desc())
+        .limit(3)
+    ).all()
+    new_since = datetime.now(UTC) - timedelta(days=1)
+    items = [
+        {
+            "title": r.title,
+            "created_at": r.created_at.astimezone(KST).strftime("%m.%d"),
+            "is_new": r.created_at >= new_since,
+            "url": None,  # TODO(견적 리스트 단계): f"/list/{r.id}"
+        }
+        for r in rows
+    ]
+    return render(request, "partials/recent_inquiries.html", items=items)
 
 
 @router.get("/healthz")

@@ -1,0 +1,43 @@
+{% from "admin/_macros.html" import status_badge, pagination %}
+{# 상태 탭: 다른 필터를 적용한 건수. 고른 상태는 필터 폼(form 속성)에 함께 실립니다 #}
+<input type="hidden" name="status" value="{{ f.status }}" form="inq-filters">
+<div class="flex gap-1 overflow-x-auto border-b border-gray-200 text-sm" role="tablist" aria-label="상태">
+  {% for key, label in [("", "전체")] + statuses.items() | list %}
+    {% set on = f.status == key %}
+    <a href="{{ qs(request, status=key, page='') }}" hx-get="{{ qs(request, status=key, page='') }}" hx-target="#results" hx-push-url="true"
+       role="tab" aria-selected="{{ 'true' if on else 'false' }}"
+       class="-mb-px shrink-0 border-b-2 px-3 py-2 {{ 'border-brand font-semibold text-brand' if on else 'border-transparent text-gray-600 hover:text-ink' }}">
+      {{ label }} <span class="ml-0.5 text-xs {{ 'text-brand' if on else 'text-gray-400' }}">{{ counts.get(key, 0) }}</span>
+    </a>
+  {% endfor %}
+</div>
+
+<ul class="mt-3 divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200 bg-white">
+  {% for inq in rows %}
+    <li>
+      <a href="/admin/inquiries/{{ inq.id }}" class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 px-4 py-3 hover:bg-gray-50 md:grid-cols-[7rem_5rem_1fr_8rem_5rem_7rem] md:items-center">
+        <span class="order-1 font-mono text-xs text-gray-500 md:order-none md:text-sm">{{ inq.number }}</span>
+        <span class="order-3 md:order-none">{{ status_badge(inq.status, inq.status_label) }}</span>
+        <span class="order-2 col-span-2 min-w-0 md:order-none md:col-span-1">
+          <span class="block truncate font-medium text-ink">{{ inq.title }}</span>
+          <span class="block truncate text-xs text-gray-500 md:hidden">{{ inq.company }} · {{ inq.name }}</span>
+        </span>
+        <span class="hidden truncate text-sm text-gray-600 md:block">{{ inq.company }}<br><span class="text-xs text-gray-400">{{ inq.name }}</span></span>
+        <span class="order-4 text-right text-xs md:order-none md:text-left md:text-sm">
+          {% if inq.assignee %}{{ inq.assignee.name }}{% else %}<span class="text-amber-700">미지정</span>{% endif %}
+        </span>
+        <span class="order-5 col-span-2 flex gap-3 text-xs text-gray-500 md:col-span-1 md:block md:text-right">
+          {{ inq.created_at | kst("%Y-%m-%d %H:%M") }}
+          <span class="md:block">
+            {% if inq.files %}<span title="첨부">📎{{ inq.files | length }}</span>{% endif %}
+            {% if reply_counts.get(inq.id) %}<span title="답변">💬{{ reply_counts[inq.id] }}</span>{% endif %}
+          </span>
+        </span>
+      </a>
+    </li>
+  {% else %}
+    <li class="px-4 py-12 text-center text-gray-500">조건에 맞는 견적이 없습니다.</li>
+  {% endfor %}
+</ul>
+
+{{ pagination(request, page, "#results") }}

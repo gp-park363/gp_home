@@ -1,0 +1,23 @@
+<div id="gallery" hx-params="none">
+  {% if item.images %}
+    <ol class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {% for img in item.images %}
+        <li class="overflow-hidden rounded border border-gray-200 bg-white">
+          <img src="{{ img.url }}" alt="" class="aspect-[4/3] w-full object-cover" loading="lazy">
+          <div class="flex items-center gap-1 px-2 py-1.5 text-xs">
+            <span class="text-gray-500">{{ loop.index }}</span>
+            <button type="button" class="ml-auto rounded px-1.5 py-0.5 hover:bg-gray-100 disabled:opacity-30" aria-label="앞으로"
+                    hx-post="/admin/showroom/{{ item.id }}/images/{{ img.id }}/move?dir=up" hx-target="#gallery" hx-swap="outerHTML" {{ 'disabled' if loop.first }}>◀</button>
+            <button type="button" class="rounded px-1.5 py-0.5 hover:bg-gray-100 disabled:opacity-30" aria-label="뒤로"
+                    hx-post="/admin/showroom/{{ item.id }}/images/{{ img.id }}/move?dir=down" hx-target="#gallery" hx-swap="outerHTML" {{ 'disabled' if loop.last }}>▶</button>
+            <button type="button" class="rounded px-1.5 py-0.5 text-red-600 hover:bg-red-50"
+                    hx-post="/admin/showroom/{{ item.id }}/images/{{ img.id }}/delete" hx-target="#gallery" hx-swap="outerHTML"
+                    hx-confirm="이 사진을 지웁니다. 계속할까요?">삭제</button>
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="text-sm text-gray-500">등록된 사진이 없습니다.</p>
+  {% endif %}
+</div>

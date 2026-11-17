@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block meta %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block content %}
+<section class="container-page py-16 md:py-24">
+  <div class="mx-auto max-w-xl text-center">
+    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand text-3xl text-white" aria-hidden="true">✓</div>
+    <h1 class="mt-6 text-3xl font-bold text-ink">견적문의가 접수되었습니다</h1>
+    <p class="mt-3 text-gray-600">담당자가 내용을 확인한 뒤 이메일로 답변드립니다.</p>
+
+    <dl class="mt-10 divide-y divide-gray-100 rounded-lg border border-gray-200 text-left text-sm">
+      <div class="grid grid-cols-[6rem_1fr] gap-4 bg-cream px-5 py-4">
+        <dt class="font-semibold text-gray-500">접수번호</dt>
+        <dd class="text-xl font-bold tracking-wider text-brand">{{ inq.number }}</dd>
+      </div>
+      <div class="grid grid-cols-[6rem_1fr] gap-4 px-5 py-3">
+        <dt class="font-semibold text-gray-500">요청 제목</dt>
+        <dd class="text-ink">{{ inq.title }}</dd>
+      </div>
+      <div class="grid grid-cols-[6rem_1fr] gap-4 px-5 py-3">
+        <dt class="font-semibold text-gray-500">답변 메일</dt>
+        <dd class="text-ink">{{ masked_email }}</dd>
+      </div>
+      {% if inq.files %}
+        <div class="grid grid-cols-[6rem_1fr] gap-4 px-5 py-3">
+          <dt class="font-semibold text-gray-500">첨부</dt>
+          <dd class="text-ink">{{ inq.files | length }}개</dd>
+        </div>
+      {% endif %}
+    </dl>
+
+    <p class="mt-6 text-sm text-gray-500">
+      접수 확인 메일을 보내 드렸습니다. 메일이 보이지 않으면 스팸함을 확인해 주세요.<br>
+      접수번호는 진행 상황을 확인할 때 필요하니 보관해 주세요.
+    </p>
+
+    <div class="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
+      <a href="/" class="btn-primary">메인으로</a>
+      <a href="/portfolio/" class="rounded border border-brand px-6 py-3 font-semibold text-brand hover:bg-brand/5">쇼룸 둘러보기</a>
+    </div>
+    <p class="mt-8 text-sm text-gray-500">급한 문의: <a href="{{ company.tel_href }}" class="font-semibold text-brand">{{ company.tel }}</a></p>
+  </div>
+</section>
+{% endblock %}

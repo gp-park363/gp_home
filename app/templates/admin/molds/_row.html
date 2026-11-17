@@ -1,0 +1,12 @@
+<tr id="mold-{{ m.id }}" class="{{ 'bg-emerald-50' if created }} {{ 'text-gray-400' if not m.is_active }}">
+  <td class="px-3 py-2 font-mono">{{ m.code or "-" }}</td>
+  <td class="px-3 py-2">{{ m.box_type_label }}</td>
+  <td class="px-3 py-2 tabular-nums">{{ m.size_label }}</td>
+  <td class="max-w-xs truncate px-3 py-2" title="{{ m.memo }}">{{ m.memo }}</td>
+  <td class="px-3 py-2">{% if m.is_active %}<span class="text-emerald-700">사용</span>{% else %}사용 안 함{% endif %}</td>
+  <td class="px-3 py-2 text-right whitespace-nowrap">
+    <button type="button" class="text-brand hover:underline" hx-get="/admin/molds/{{ m.id }}/edit" hx-target="closest tr" hx-swap="outerHTML">수정</button>
+    <button type="button" class="ml-2 text-red-600 hover:underline" hx-delete="/admin/molds/{{ m.id }}" hx-target="closest tr" hx-swap="outerHTML"
+            hx-confirm="목형 {{ m.code or m.size_label }}을(를) 지웁니다. 이 목형을 고른 견적은 연결만 풀립니다. 계속할까요?">삭제</button>
+  </td>
+</tr>

@@ -1,0 +1,23 @@
+{{ inq.name }}님, 안녕하세요. 좋은상자입니다.
+
+견적문의가 정상적으로 접수되었습니다.
+담당자가 내용을 확인한 뒤 이 메일 주소로 답변드리겠습니다.
+
+■ 접수번호: {{ inq.number }}
+■ 접수일시: {{ received_at.strftime("%Y-%m-%d %H:%M") }}
+■ 요청 제목: {{ inq.title }}
+{% if inq.spec and inq.spec.rows %}
+[제작 사양]
+{% for label, value in inq.spec.rows %}- {{ label }}: {{ value }}
+{% endfor %}{% if inq.mold %}- 선택한 보유 목형: {{ inq.mold.size_label }} mm
+{% endif %}{% endif %}{% if inq.quantity %}- 제작 수량: {{ inq.quantity }}
+{% endif %}{% if inq.budget %}- 최대 예산: {{ inq.budget }}
+{% endif %}{% if inq.files %}- 첨부: {{ inq.files | length }}개
+{% endif %}
+접수번호는 진행 상황을 확인할 때 필요하니 보관해 주세요.
+급한 문의는 전화 {{ company.tel }} ({{ company.hours }})로 연락 주세요.
+
+※ 이 메일은 발신 전용입니다.
+
+{{ company.name }}
+{{ settings.site_url }}

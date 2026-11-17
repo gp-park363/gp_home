@@ -16,6 +16,9 @@ dependencies = [
     "argon2-cffi>=25.1",
     "itsdangerous>=2.2",
     "pillow>=12",
+    "cryptography>=50.0.2",
+    "tzdata>=2026.6",
+    "openpyxl>=3.1.5",
 ]
 
 [dependency-groups]

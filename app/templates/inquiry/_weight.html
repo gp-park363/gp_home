@@ -1,0 +1,4 @@
+{% from "inquiry/_macros.html" import select %}
+{# 종이재질을 바꾸면 이 줄(#weight-field) 전체를 교체합니다 #}
+{{ select("weight", "종이무게", weights, v, {}, extra_option=content.WEIGHT_NONE, id="weight-field",
+          attrs='hx-post="/inquiry/validate" hx-trigger="change" hx-target="#err-weight" hx-swap="outerHTML" hx-params="not files,cf-turnstile-response"' ~ ('' if v.get('material') else ' disabled')) }}

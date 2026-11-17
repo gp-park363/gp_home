@@ -1,0 +1,39 @@
+{# 관리자 공통 매크로 #}
+
+{% macro status_badge(status, label, id="") -%}
+  {% set colors = {
+    "received": "bg-amber-100 text-amber-800",
+    "in_progress": "bg-sky-100 text-sky-800",
+    "answered": "bg-emerald-100 text-emerald-800",
+    "closed": "bg-gray-200 text-gray-600",
+  } %}
+  <span {% if id %}id="{{ id }}"{% endif %} class="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ colors.get(status, 'bg-gray-100') }}">{{ label }}</span>
+{%- endmacro %}
+
+{# 페이지 이동. target이 있으면 htmx로 그 영역만 교체하고 주소도 바꿉니다 #}
+{% macro pagination(request, page, target="") -%}
+  {% if page.pages > 1 %}
+  <nav class="mt-4 flex flex-wrap items-center justify-center gap-1 text-sm" aria-label="페이지">
+    {% macro link(n, text, current=False) -%}
+      <a href="{{ qs(request, page=n) }}" {% if target %}hx-get="{{ qs(request, page=n) }}" hx-target="{{ target }}" hx-push-url="true"{% endif %}
+         class="min-w-9 rounded px-2.5 py-1.5 text-center {{ 'bg-brand text-white font-semibold' if current else 'bg-white hover:bg-gray-50 border border-gray-200' }}"
+         {% if current %}aria-current="page"{% endif %}>{{ text }}</a>
+    {%- endmacro %}
+    {% if page.number > 1 %}{{ link(page.number - 1, "‹ 이전") }}{% endif %}
+    {% for n in page.window() %}{{ link(n, n, n == page.number) }}{% endfor %}
+    {% if page.number < page.pages %}{{ link(page.number + 1, "다음 ›") }}{% endif %}
+    <span class="ml-2 text-gray-500">{{ page.number }} / {{ page.pages }} 쪽 · {{ page.total }}건</span>
+  </nav>
+  {% endif %}
+{%- endmacro %}
+
+{% macro field_error(msg) -%}
+  {% if msg %}<p class="mt-1 text-sm text-red-600">{{ msg }}</p>{% endif %}
+{%- endmacro %}
+
+{% macro card(title="", extra="") -%}
+  <section class="rounded-lg border border-gray-200 bg-white p-5 {{ extra }}">
+    {% if title %}<h2 class="mb-3 font-bold text-ink">{{ title }}</h2>{% endif %}
+    {{ caller() }}
+  </section>
+{%- endmacro %}

@@ -42,9 +42,16 @@ build: ## 이미지 재빌드
 	$(DC) build
 
 # ── DB ──────────────────────────────────────────────────
-.PHONY: migrate revision seed-showroom psql db-reset
+.PHONY: migrate create-admin import-molds revision seed-showroom psql db-reset
 migrate: ## 마이그레이션 적용
 	$(DC) exec web alembic upgrade head
+
+create-admin: ## 관리자 계정 만들기·비밀번호 복구 (대화형)
+	$(DC) exec web python -m scripts.create_user
+
+import-molds: ## 목형 엑셀·CSV 가져오기 (예: make import-molds f=scripts/data/sample_molds.csv)
+	@test -n "$(f)" || (echo '사용법: make import-molds f=파일.csv' && exit 1)
+	$(DC) exec web python -m scripts.import_molds $(f)
 
 revision: ## 마이그레이션 생성 (예: make revision m="add inquiries")
 	@test -n "$(m)" || (echo '사용법: make revision m="설명"' && exit 1)
@@ -87,6 +94,7 @@ prod-env: ## 로컬 점검용 운영 .env 생성 (APP_ENV=prod, 무작위 비밀
 	      -e "s#^SITE_URL=.*#SITE_URL=https://localhost#" \
 	      -e "s/^SECRET_KEY=.*/SECRET_KEY=$$(openssl rand -hex 32)/" \
 	      -e "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$$(openssl rand -hex 16)/" \
+	      -e "s#^DATA_KEYS=.*#DATA_KEYS=$$(openssl rand -base64 32 | tr '+/' '-_')#" \
 	      .env.example > $(PROD_ENV) && echo "$(PROD_ENV) 생성됨"; fi
 
 certs-local: ## 로컬 점검용 자체 서명 인증서 (운영은 Cloudflare Origin 인증서)

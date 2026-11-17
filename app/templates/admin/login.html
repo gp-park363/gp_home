@@ -1,0 +1,23 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<div class="mx-auto mt-10 max-w-sm sm:mt-20">
+  <div class="mb-6 text-center">
+    <img src="/static/img/logo.webp" alt="좋은상자" class="mx-auto h-10 w-auto">
+    <h1 class="mt-3 text-lg font-bold text-ink">관리자 로그인</h1>
+  </div>
+  <form method="post" action="/admin/login" class="space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <input type="hidden" name="next" value="{{ next }}">
+    {% if error %}<p class="rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{{ error }}</p>{% endif %}
+    <div>
+      <label for="email" class="block text-sm font-semibold text-ink">이메일</label>
+      <input id="email" name="email" type="email" value="{{ email }}" required autocomplete="username" autofocus class="input mt-1.5">
+    </div>
+    <div>
+      <label for="password" class="block text-sm font-semibold text-ink">비밀번호</label>
+      <input id="password" name="password" type="password" required autocomplete="current-password" class="input mt-1.5">
+    </div>
+    <button class="btn-primary w-full">로그인</button>
+  </form>
+  <p class="mt-4 text-center text-xs text-gray-500">비밀번호를 잊었으면 관리자에게 초기화를 요청하세요.</p>
+</div>
+{% endblock %}
