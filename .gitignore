@@ -1,0 +1,24 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv
+
+# 환경 변수·비밀
+.env
+.env.*
+!.env.example
+deploy/certs/
+
+# 빌드 결과물 (Tailwind)
+app/static/css/app.css
+
+# 로컬 데이터 (업로드, WP 덤프, 백업)
+var/

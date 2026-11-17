@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% with ph_title="쇼룸", ph_subtitle="좋은상자에서 직접 제작한 박스 샘플입니다.", ph_bg="process-bg", ph_crumbs=[("제품소개", "/portfolio/"), ("쇼룸", "/portfolio/")] %}
+  {% include "partials/page_header.html" %}
+{% endwith %}
+
+<section class="container-page py-12 md:py-16">
+  <p class="max-w-3xl text-gray-600">
+    좋은상자는 최상의 품질, 합리적인 가격으로 제품을 공급할 수 있도록 디자인부터 인쇄, 완제품까지 논스톱 시스템을 갖추고 있습니다.
+    마음에 드는 사례를 골라 <strong class="text-ink">같은 사양으로 견적</strong>을 받아 보세요.
+  </p>
+
+  {# 필터 링크(hx-get)는 이 영역을 교체하고 주소도 바꿉니다 #}
+  <div id="portfolio-browser" class="mt-8" hx-target="this" hx-swap="innerHTML" hx-push-url="true">
+    {% include "portfolio/_browser.html" %}
+  </div>
+</section>
+{% endblock %}

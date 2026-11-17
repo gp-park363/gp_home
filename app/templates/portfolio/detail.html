@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% from "portfolio/_macros.html" import card, list_url %}
+
+{% block meta %}
+  {% if item.images %}<meta property="og:image" content="{{ settings.site_url }}{{ item.images[0].url }}">{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="border-b border-gray-200 bg-gray-50">
+  <nav aria-label="현재 위치" class="container-page py-3 text-sm text-gray-500">
+    <ol class="flex flex-wrap items-center gap-2">
+      <li><a href="/" class="hover:text-brand">홈</a></li>
+      <li aria-hidden="true">›</li>
+      <li><a href="/portfolio/" class="hover:text-brand">쇼룸</a></li>
+      <li aria-hidden="true">›</li>
+      <li><a href="{{ list_url(item.box_type) }}" class="hover:text-brand">{{ item.box_type_label }}</a></li>
+      <li aria-hidden="true">›</li>
+      <li aria-current="page" class="text-ink">{{ item.name }}</li>
+    </ol>
+  </nav>
+</div>
+
+<article class="container-page grid gap-10 py-10 md:py-16 lg:grid-cols-[3fr_2fr] lg:gap-14">
+  {# 갤러리 #}
+  <div x-data="{ i: 0 }">
+    {% if item.images %}
+      <div class="overflow-hidden rounded-lg bg-gray-100">
+        {% for img in item.images %}
+          <img src="{{ img.url }}" alt="{{ item.name }} 사진 {{ loop.index }}" width="{{ img.width }}" height="{{ img.height }}"
+               class="mx-auto max-h-[70vh] w-auto object-contain" {% if not loop.first %}x-cloak loading="lazy"{% endif %}
+               x-show="i === {{ loop.index0 }}">
+        {% endfor %}
+      </div>
+      {% if item.images | length > 1 %}
+        <ul class="mt-3 flex gap-2 overflow-x-auto" aria-label="사진 선택">
+          {% for img in item.images %}
+            <li class="shrink-0">
+              <button type="button" @click="i = {{ loop.index0 }}" class="block h-16 w-16 overflow-hidden rounded border-2 md:h-20 md:w-20"
+                      :class="i === {{ loop.index0 }} ? 'border-brand' : 'border-transparent opacity-70 hover:opacity-100'"
+                      :aria-pressed="(i === {{ loop.index0 }}).toString()" aria-label="사진 {{ loop.index }} 보기">
+                <img src="{{ img.url }}" alt="" class="h-full w-full object-cover" loading="lazy">
+              </button>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  {# 사양 #}
+  <div>
+    <div class="flex flex-wrap gap-2 text-xs font-semibold">
+      <a href="{{ list_url(item.box_type) }}" class="rounded-full bg-brand/10 px-3 py-1 text-brand hover:bg-brand/20">{{ item.box_type_label }}</a>
+      <a href="{{ list_url(None, item.industry) }}" class="rounded-full bg-accent/15 px-3 py-1 text-[#9a6330] hover:bg-accent/25">{{ item.industry_label }}</a>
+    </div>
+    <h1 class="mt-3 text-3xl font-bold text-ink md:text-4xl">{{ item.name }}</h1>
+    {% if item.description %}<p class="mt-4 leading-relaxed text-gray-600">{{ item.description }}</p>{% endif %}
+
+    <dl class="mt-8 divide-y divide-gray-100 border-y border-gray-200 text-sm">
+      {% for label, value in item.specs %}
+        <div class="grid grid-cols-[5rem_1fr] gap-4 py-3">
+          <dt class="font-semibold text-gray-500">{{ label }}</dt>
+          <dd class="text-ink">{{ value }}</dd>
+        </div>
+      {% endfor %}
+    </dl>
+
+    <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+      {# 견적 폼(4단계)에서 이 사례의 박스형태·사양을 미리 채웁니다 #}
+      <a href="/inquiry/?portfolio={{ item.id }}" class="btn-primary flex-1">이 사양으로 견적 문의</a>
+      <a href="{{ company.tel_href }}" class="rounded border border-brand px-6 py-3 text-center font-semibold whitespace-nowrap text-brand hover:bg-brand/5" aria-label="전화 상담 {{ company.tel }}">전화 상담</a>
+    </div>
+    <p class="mt-3 text-xs text-gray-500">사이즈·수량·재질은 견적 단계에서 조정할 수 있습니다.</p>
+  </div>
+</article>
+
+{% if related %}
+  <section class="border-t border-gray-100 bg-gray-50 py-14">
+    <div class="container-page">
+      <div class="flex items-end justify-between">
+        <h2 class="text-xl font-bold text-ink">같은 {{ item.box_type_label }} 사례</h2>
+        <a href="{{ list_url(item.box_type) }}" class="text-sm text-gray-500 hover:text-brand">전체보기 +</a>
+      </div>
+      <div class="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4">
+        {% for r in related %}{{ card(r) }}{% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<div class="container-page py-10 text-center">
+  <a href="/portfolio/" class="text-sm text-gray-500 underline underline-offset-4 hover:text-brand">쇼룸 목록으로</a>
+</div>
+{% endblock %}

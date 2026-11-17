@@ -1,0 +1,16 @@
+{# htmx 조각: 메인 '실시간 문의' 목록. items: [{title, created_at, is_new, url}] #}
+{% if items %}
+  <ul class="divide-y divide-gray-100">
+    {% for it in items %}
+      <li>
+        <a href="{{ it.url }}" class="flex items-center gap-3 py-3 hover:text-brand">
+          {% if it.is_new %}<span class="rounded bg-accent px-1.5 text-xs font-bold text-white">N</span>{% endif %}
+          <span class="flex-1 truncate">{{ it.title }}</span>
+          <time class="shrink-0 text-sm text-gray-400">{{ it.created_at }}</time>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="py-6 text-center text-sm text-gray-400">최근 접수된 문의가 없습니다.</p>
+{% endif %}

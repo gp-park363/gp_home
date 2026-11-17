@@ -1,0 +1,69 @@
+# 로컬 개발용. 루트에서 `make up` (또는 아래 명령)으로 실행합니다.
+#   docker compose --env-file .env -f deploy/docker-compose.yml up
+name: goodpackage
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-goodpackage}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-goodpackage}
+      POSTGRES_DB: ${POSTGRES_DB:-goodpackage}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build:
+      context: ..
+      target: dev
+    user: "${UID:-1000}:${GID:-1000}"
+    env_file: ../.env
+    environment:
+      APP_ENV: dev
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-goodpackage}:${POSTGRES_PASSWORD:-goodpackage}@db:5432/${POSTGRES_DB:-goodpackage}
+      MEDIA_ROOT: /data/media
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+    volumes:
+      - ..:/srv
+      - ../var/media:/data/media
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Tailwind 감시 빌드: 템플릿이 바뀌면 app/static/css/app.css 재생성
+  css:
+    build:
+      context: ..
+      target: tailwind
+    user: "${UID:-1000}:${GID:-1000}"
+    command: ["tailwindcss", "-i", "app/static/css/input.css", "-o", "app/static/css/app.css", "--watch=always"]
+    volumes:
+      - ..:/srv
+
+  nginx:
+    image: nginx:1.30-alpine
+    ports:
+      - "${WEB_PORT:-8000}:80"
+    volumes:
+      - ./nginx/dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/locations.conf:/etc/nginx/snippets/locations.conf:ro
+      - ../app/static:/srv/static:ro
+      - ../var/media:/data/media:ro
+    depends_on:
+      - web
+
+  mailpit:
+    image: axllent/mailpit:v1.29
+    ports:
+      - "127.0.0.1:${MAILPIT_PORT:-8025}:8025"
+
+volumes:
+  pgdata:

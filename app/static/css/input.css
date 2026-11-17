@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* 템플릿에서 사용한 클래스만 빌드에 포함 */
+@source "../../templates";
+
+@theme {
+  /* 현 사이트 색상 기조: 짙은 녹색(메뉴 활성색) + 베이지 + 주황 포인트 */
+  --color-brand: #43564a;
+  --color-brand-dark: #2f3d34;
+  --color-cream: #f1ede8;
+  --color-accent: #e4aa71;
+  --color-ink: #161922;
+  --font-sans: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic",
+    system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    word-break: keep-all;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto max-w-6xl px-4;
+  }
+  .eyebrow {
+    @apply text-sm font-semibold tracking-[0.2em] text-accent uppercase;
+  }
+  .section-title {
+    @apply mt-2 text-2xl font-bold text-ink md:text-4xl;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded bg-brand px-6 py-3 font-semibold text-white transition hover:bg-brand-dark;
+  }
+}
+
+[x-cloak] {
+  display: none !important;
+}

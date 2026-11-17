@@ -1,0 +1,16 @@
+{# 카드 묶음 + 다음 묶음 감지 영역. 무한 스크롤(page>1) 응답으로도 단독 사용 #}
+{% from "portfolio/_macros.html" import card, list_url %}
+{% for item in items %}
+  {{ card(item) }}
+{% endfor %}
+{% if has_more %}
+  {# 화면에 보이면 다음 묶음을 불러와 자기 자신과 교체. 스크립트가 없을 때는 링크로 동작 #}
+  <div class="col-span-full flex justify-center pt-4"
+       hx-get="{{ list_url(box_type, industry, page + 1) }}"
+       hx-trigger="revealed"
+       hx-target="this"
+       hx-swap="outerHTML"
+       hx-push-url="false">
+    <a href="{{ list_url(box_type, industry, page + 1) }}" class="rounded border border-gray-300 px-6 py-2 text-sm text-gray-600 hover:border-brand hover:text-brand">더 보기</a>
+  </div>
+{% endif %}

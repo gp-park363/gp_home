@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {# title, description은 라우트에서 넘깁니다 (app/routers/pages.py) #}
+  {% set description = description or "좋은상자는 디자인부터 인쇄, 코팅, 후가공, 톰슨, 접착까지 자체 설비로 패키지 박스를 제작합니다. 다양한 규격의 기존 목형으로 예산을 절약하세요." %}
+  <title>{{ title ~ " | " if title }}좋은상자 - 패키지 박스 제작 전문</title>
+  <meta name="description" content="{{ description }}">
+  <link rel="canonical" href="{{ settings.site_url }}{{ request.url.path }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="좋은상자">
+  <meta property="og:title" content="{{ title or '좋은상자 - 패키지 박스 제작 전문' }}">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:image" content="{{ settings.site_url }}/static/img/hero.webp">
+  {% block meta %}{% endblock %}
+  <link rel="icon" href="/static/img/favicon.webp" type="image/webp">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/js/htmx.min.js" defer></script>
+  <script src="/static/js/alpine.min.js" defer></script>
+  {% block scripts %}{% endblock %}
+</head>
+<body class="flex min-h-screen flex-col bg-white text-gray-800 antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-white focus:p-2">본문 바로가기</a>
+  {% include "partials/header.html" %}
+  <main id="main" class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+  {% include "partials/footer.html" %}
+</body>
+</html>

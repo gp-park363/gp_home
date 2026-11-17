@@ -1,0 +1,8 @@
+{# 기술소개 하위 탭: 제작과정 / 보유장비 #}
+<div class="border-b border-gray-200 bg-white">
+  <nav class="container-page flex" aria-label="기술소개">
+    {% for key, label, href in [("process", "제작과정", "/process/"), ("facilities", "보유장비", "/facilities/")] %}
+      <a href="{{ href }}" class="-mb-px border-b-2 px-6 py-4 font-medium {{ 'border-brand text-brand' if active == key else 'border-transparent text-gray-500 hover:text-brand' }}" {% if active == key %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </nav>
+</div>

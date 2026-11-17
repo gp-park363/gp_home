@@ -1,0 +1,74 @@
+# 운영용. 서버(및 배포 전 로컬 점검)에서 실행합니다.
+#   docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d --build
+# 필요 파일:
+#   .env                     운영 값 (.env.example 참고, APP_ENV=prod)
+#   deploy/certs/origin.pem  Cloudflare Origin 인증서
+#   deploy/certs/origin.key
+#   ${MEDIA_DIR}             업로드 폴더 (기본 /data/media, uid 1000 소유)
+name: goodpackage-prod
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER 필요}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 필요}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB 필요}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    logging: *logging
+
+  web:
+    build:
+      context: ..
+      target: prod
+    restart: unless-stopped
+    env_file: ../${ENV_FILE:-.env}
+    environment:
+      APP_ENV: prod
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      MEDIA_ROOT: /data/media
+    volumes:
+      - ${MEDIA_DIR:-/data/media}:/data/media
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging: *logging
+
+  nginx:
+    build:
+      context: ..
+      target: nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/locations.conf:/etc/nginx/snippets/locations.conf:ro
+      - ./nginx/cloudflare-ips.conf:/etc/nginx/snippets/cloudflare-ips.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+      - ${MEDIA_DIR:-/data/media}:/data/media:ro
+    depends_on:
+      - web
+    logging: *logging
+
+volumes:
+  pgdata:

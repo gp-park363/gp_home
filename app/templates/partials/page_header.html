@@ -1,0 +1,18 @@
+{# 하위 페이지 상단 배너
+   필요한 변수: ph_title, ph_subtitle(선택), ph_bg(이미지 이름), ph_crumbs[(제목, 링크)] #}
+<section class="relative isolate overflow-hidden bg-ink">
+  <img src="/static/img/{{ ph_bg }}.webp" alt="" class="absolute inset-0 -z-10 h-full w-full object-cover opacity-50" fetchpriority="high">
+  <div class="container-page py-16 text-white md:py-24">
+    <nav aria-label="현재 위치" class="text-sm text-white/70">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="hover:text-white">홈</a></li>
+        {% for label, href in ph_crumbs %}
+          <li aria-hidden="true">›</li>
+          <li>{% if loop.last %}<span aria-current="page" class="text-white">{{ label }}</span>{% else %}<a href="{{ href }}" class="hover:text-white">{{ label }}</a>{% endif %}</li>
+        {% endfor %}
+      </ol>
+    </nav>
+    <h1 class="mt-4 text-3xl font-bold md:text-5xl">{{ ph_title }}</h1>
+    {% if ph_subtitle %}<p class="mt-3 text-white/80 md:text-lg">{{ ph_subtitle }}</p>{% endif %}
+  </div>
+</section>

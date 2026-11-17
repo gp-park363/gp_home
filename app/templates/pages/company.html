@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block scripts %}{% if settings.naver_map_client_id %}<script src="/static/js/naver-map.js" defer></script>{% endif %}{% endblock %}
+
+{% block content %}
+{% with ph_title="회사소개", ph_subtitle="선진 기술을 보유한 선두가 되도록 노력하겠습니다.", ph_bg="company-bg", ph_crumbs=[("회사소개", "/company/")] %}
+  {% include "partials/page_header.html" %}
+{% endwith %}
+
+{# 인사말 #}
+<section class="container-page py-20 text-center md:py-28">
+  <img src="/static/img/logo-big.webp" alt="좋은상자" width="457" height="173" class="mx-auto h-20 w-auto md:h-28" loading="lazy">
+  <p class="mx-auto mt-10 max-w-3xl text-xl font-bold leading-relaxed text-ink md:text-2xl">
+    제품 포장상자의 품질은 제품 자체의 품질, 나아가 기업의 가치를 대변합니다.
+  </p>
+  <div class="mx-auto mt-6 max-w-3xl space-y-2 leading-relaxed text-gray-600 md:text-lg">
+    <p>좋은상자는 최상의 품질, 합리적인 가격으로 제품을 공급할 수 있도록 디자인부터 인쇄, 완제품까지 논스톱 시스템을 갖추고 있습니다.</p>
+    <p>원가절감과 생산성 향상에 노력하며, 수익의 상당 부분을 제품개발과 설비증설에 재투자하여 경쟁력을 강화하고 있습니다.</p>
+  </div>
+</section>
+
+{# 연혁 (기존 이미지 → HTML 연대표) #}
+<section class="bg-cream py-20 md:py-28">
+  <div class="container-page">
+    <div class="text-center">
+      <p class="eyebrow">History</p>
+      <h2 class="section-title">연혁</h2>
+    </div>
+    <ol class="relative mx-auto mt-14 max-w-3xl before:absolute before:inset-y-0 before:left-[7px] before:w-px before:bg-brand/30 md:before:left-1/2">
+      {% for date, event in history %}
+        <li class="relative pb-10 pl-10 last:pb-0 md:w-1/2 md:pl-0 {{ 'md:pr-12 md:text-right' if loop.index is odd else 'md:ml-auto md:pl-12' }}">
+          <span class="absolute left-0 top-1 h-[15px] w-[15px] rounded-full border-4 border-cream bg-brand ring-1 ring-brand {{ 'md:left-auto md:-right-[7px]' if loop.index is odd else 'md:-left-[8px]' }}" aria-hidden="true"></span>
+          <time class="text-lg font-bold text-brand">{{ date }}</time>
+          <p class="mt-1 text-gray-700">{{ event }}</p>
+        </li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>
+
+{# 조직도 #}
+<section class="container-page py-20 md:py-28">
+  <div class="text-center">
+    <p class="eyebrow">Organization</p>
+    <h2 class="section-title">조직도</h2>
+  </div>
+  <div class="mt-14 flex flex-col items-center">
+    <div class="rounded-full bg-brand px-10 py-4 text-lg font-bold text-white">대표이사</div>
+    <div class="h-8 w-px bg-gray-300" aria-hidden="true"></div>
+  </div>
+  <ul class="grid grid-cols-2 gap-4 border-t border-gray-300 pt-8 md:grid-cols-3 lg:grid-cols-6">
+    {% for team, roles in organization %}
+      <li class="rounded-lg border border-gray-200 text-center">
+        <h3 class="rounded-t-lg bg-ink py-3 font-bold text-white">{{ team }}</h3>
+        <ul class="space-y-1 p-4 text-sm text-gray-600">
+          {% for r in roles %}<li>{{ r }}</li>{% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+
+{# 오시는 길 #}
+<section class="bg-gray-50 py-20 md:py-28" id="location">
+  <div class="container-page">
+    <div class="text-center">
+      <p class="eyebrow">Location</p>
+      <h2 class="section-title">좋은상자 오시는 길</h2>
+    </div>
+    <div class="mt-14 grid gap-10 lg:grid-cols-2">
+      {% for loc in company.locations %}
+        <article class="overflow-hidden rounded-lg bg-white shadow-sm">
+          {% if settings.naver_map_client_id %}
+            {# 화면에 보일 때 지도 SDK를 불러옵니다 (static/js/naver-map.js) #}
+            <div class="aspect-[4/3] bg-gray-100" data-naver-map data-address="{{ loc.address }}" data-title="{{ loc.name }}" data-client-id="{{ settings.naver_map_client_id }}" role="img" aria-label="{{ loc.name }} 지도"></div>
+          {% else %}
+            {# 지도 키(NAVER_MAP_CLIENT_ID)가 없을 때: 지도 대신 링크 배너 #}
+            <a href="{{ loc.map_url }}" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 bg-brand py-5 font-semibold text-white hover:bg-brand-dark">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              네이버 지도에서 위치 보기 ↗
+            </a>
+          {% endif %}
+          <div class="p-6 md:p-8">
+            <h3 class="text-xl font-bold text-ink">{{ loc.name }}</h3>
+            <p class="mt-1 text-gray-500">{{ loc.summary }}</p>
+            <dl class="mt-6 grid grid-cols-[5rem_1fr] gap-y-2 text-sm">
+              <dt class="font-semibold text-brand">주소</dt><dd>{{ loc.address }}</dd>
+              <dt class="font-semibold text-brand">전화</dt><dd><a href="tel:{{ loc.tel | replace('-', '') }}" class="hover:text-brand">{{ loc.tel }}</a></dd>
+              <dt class="font-semibold text-brand">대중교통</dt><dd>{{ loc.transit }}</dd>
+            </dl>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,12 @@
+<footer class="bg-ink text-sm text-gray-400">
+  <div class="container-page grid gap-8 py-12 md:grid-cols-[auto_1fr]">
+    <img src="/static/img/logo-white.webp" alt="좋은상자" width="144" height="45" class="h-9 w-auto" loading="lazy">
+    <div class="space-y-1.5">
+      <p><span class="text-gray-200">{{ company.name }}</span> <span class="mx-1 text-gray-600">|</span> 공동대표 : {{ company.ceo }}</p>
+      {% for loc in company.locations %}
+        <p>{{ '본사' if loc.key == 'hq' else '2공장' }} {{ loc.address }} <span class="mx-1 hidden text-gray-600 sm:inline">|</span><br class="sm:hidden"> <span class="whitespace-nowrap">TEL. <a href="tel:{{ loc.tel | replace('-', '') }}" class="hover:text-white">{{ loc.tel }}</a></span></p>
+      {% endfor %}
+      <p class="pt-3 text-xs text-gray-500">Copyright &copy; goodpackage.co.kr All rights reserved.</p>
+    </div>
+  </div>
+</footer>
